@@ -1,0 +1,16 @@
+# Environment
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Project outputs & cache
+output/
+models/
+*.wav
+
+# IDE / OS
+.idea/
+.DS_Store
