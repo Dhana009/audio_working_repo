@@ -16,6 +16,8 @@ import sys
 import time
 from pathlib import Path
 
+import librosa
+import numpy as np
 import soundfile as sf
 import torch
 from qwen_tts import Qwen3TTSModel
@@ -134,6 +136,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--speaker", default="Ryan", help="Speaker name")
     parser.add_argument("--language", default="English", help="Language name")
     parser.add_argument("--offline", action="store_true", help="Force local-only model loading")
+    parser.add_argument(
+        "--speed", type=float, default=1.0,
+        help="Playback speed multiplier applied after generation (default: 1.0 = normal, "
+             "1.1 = 10%% faster, 0.9 = 10%% slower). Uses librosa time-stretch, pitch is preserved.",
+    )
     return parser.parse_args()
 
 
@@ -187,9 +194,17 @@ def main() -> int:
         if device == "mps":
             torch.mps.synchronize()
 
-    log("Step 3/3 - Saving audio file...")
+    audio = wavs[0]
+    if args.speed != 1.0:
+        log(f"Step 3/4 - Adjusting speed x{args.speed} (pitch preserved)...")
+        with timer("Speed adjust"):
+            audio = librosa.effects.time_stretch(
+                np.array(audio, dtype=np.float32), rate=args.speed
+            )
+
+    log(f"Step {'4' if args.speed != 1.0 else '3'}/{'4' if args.speed != 1.0 else '3'} - Saving audio file...")
     with timer("Save"):
-        sf.write(str(args.output), wavs[0], sr)
+        sf.write(str(args.output), audio, sr)
 
     total = int(time.time() - _script_start)
     m, s = divmod(total, 60)

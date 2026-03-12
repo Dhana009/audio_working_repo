@@ -2,3 +2,4 @@ torch
 soundfile
 qwen-tts
 huggingface-hub
+librosa
