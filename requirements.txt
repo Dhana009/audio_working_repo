@@ -3,3 +3,4 @@ soundfile
 qwen-tts
 huggingface-hub
 librosa
+numpy
